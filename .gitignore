@@ -1,0 +1,30 @@
+﻿# Dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Local SQLite database and related files
+data/*.db
+data/*.db-journal
+data/*.db-shm
+data/*.db-wal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test and coverage output
+coverage/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor settings
+.vscode/
+.idea/

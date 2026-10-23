@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#173d2b">
+  <meta name="description" content="ACBCS connects agricultural commodity buyers, farmers and consultants through one convenient platform.">
+  <title>ACBCS | Agricultural Commodity Booking &amp; Consultancy</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="ACBCS home">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span class="brand-copy">
+        <strong>ACBCS</strong>
+        <small>AGRICULTURE CONNECTED</small>
+      </span>
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" type="button"
+      aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">
+      <span aria-hidden="true">☰</span>
+    </button>
+
+    <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+      <a href="#home">Home</a>
+      <a href="#marketplace">Marketplace</a>
+      <a href="#services">Consultancy</a>
+      <a href="#about">About</a>
+    </nav>
+
+    <div class="header-actions" id="headerActions">
+      <button class="btn btn-outline" id="loginBtn" type="button">Log in</button>
+      <button class="btn btn-primary" id="registerBtn" type="button">Get started <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero section" id="home">
+      <div class="hero-content">
+        <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span> YOUR AGRICULTURAL MARKETPLACE</span>
+        <h1>Growing connections.<br>Harvesting <span>opportunities.</span></h1>
+        <p>Buy agricultural commodities, connect directly with farmers, and access practical agricultural consultancy—all in one place.</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-large" href="#marketplace">Explore marketplace <span aria-hidden="true">↗</span></a>
+          <button class="btn btn-light btn-large" type="button" data-open-auth="register">Join ACBCS</button>
+        </div>
+
+        <div class="hero-trust">
+          <span class="trust-icon" aria-hidden="true">✓</span>
+          <span>For buyers, farmers and agricultural consultants</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-image">
+          <img
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&amp;fit=crop&amp;w=1200&amp;q=85"
+            alt="Green agricultural fields under a bright sky"
+            width="1200" height="800" fetchpriority="high" decoding="async">
+          <div class="image-shade"></div>
+
+          <div class="floating-card harvest-card">
+            <span class="floating-icon" aria-hidden="true">🌾</span>
+            <div><strong>Farm to market</strong><small>Making trade more accessible</small></div>
+          </div>
+
+          <div class="floating-card quality-card">
+            <span class="quality-check" aria-hidden="true">✓</span>
+            <div><strong>Connected agriculture</strong><small>Buyers · Farmers · Experts</small></div>
+          </div>
+
+          <span class="hero-sun" aria-hidden="true"></span>
+        </div>
+        <div class="hero-caption"><span>01</span> Connecting agriculture to opportunity</div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <ol class="stats-strip" aria-label="How ACBCS works">
+      <li><span class="stat-symbol" aria-hidden="true">01</span><strong>Browse</strong><small>Explore listed commodities</small></li>
+      <li><span class="stat-symbol" aria-hidden="true">02</span><strong>Connect</strong><small>Reach the right people</small></li>
+      <li><span class="stat-symbol" aria-hidden="true">03</span><strong>Book</strong><small>Place commodity bookings</small></li>
+      <li><span class="stat-symbol" aria-hidden="true">04</span><strong>Grow</strong><small>Get agricultural guidance</small></li>
+    </ol>
+
+    <!-- Marketplace -->
+    <section class="section marketplace-section" id="marketplace" aria-labelledby="marketplaceTitle">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">THE MARKETPLACE</span>
+          <h2 id="marketplaceTitle">Find your next <span>harvest.</span></h2>
+          <p>Explore agricultural products listed by farmers on ACBCS.</p>
+        </div>
+        <button class="btn btn-outline" id="refreshCommoditiesBtn" type="button">
+          <span aria-hidden="true">↻</span> Refresh listings
+        </button>
+      </div>
+
+      <div class="market-tools">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input type="search" id="commoditySearch" placeholder="Search maize, rice, cassava..." aria-label="Search commodities">
+        </label>
+        <select id="commoditySort" aria-label="Sort commodities">
+          <option value="newest">Newest first</option>
+          <option value="price-low">Price: low to high</option>
+          <option value="price-high">Price: high to low</option>
+          <option value="name">Name: A–Z</option>
+        </select>
+      </div>
+
+      <div class="status-message" id="marketStatus" role="status" aria-live="polite"></div>
+
+      <div class="commodity-grid" id="commodityGrid">
+        <div class="loading-state">Loading agricultural commodities...</div>
+      </div>
+
+      <div class="empty-state hidden" id="commodityEmpty">
+        <span aria-hidden="true">⌕</span>
+        <h3>No commodities found</h3>
+        <p>Try another search or check back for new listings.</p>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="benefits-section" id="about" aria-labelledby="aboutTitle">
+      <div class="section benefits-layout">
+        <div class="benefits-intro">
+          <span class="eyebrow">WHY ACBCS?</span>
+          <h2 id="aboutTitle">A simpler way to participate in <span>agriculture.</span></h2>
+          <p>ACBCS brings commodity discovery, booking and agricultural consultancy into one accessible web platform.</p>
+          <button class="btn btn-primary" type="button" data-open-auth="register">Create your account <span aria-hidden="true">↗</span></button>
+        </div>
+
+        <div class="benefit-list">
+          <article class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">01</span>
+            <div><h3>For buyers</h3><p>Browse available commodities, book quantities and track your booking status.</p></div>
+          </article>
+          <article class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">02</span>
+            <div><h3>For farmers</h3><p>Publish your produce, manage available stock and respond to buyer bookings.</p></div>
+          </article>
+          <article class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">03</span>
+            <div><h3>For consultants</h3><p>Use the platform to submit and track agricultural consultancy requests.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Consultancy -->
+    <section class="section services-section" id="services" aria-labelledby="servicesTitle">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">AGRICULTURAL SUPPORT</span>
+          <h2 id="servicesTitle">Knowledge that helps <span>you grow.</span></h2>
+          <p>Submit a consultancy request when you need agricultural guidance.</p>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-art" aria-hidden="true"><span>✳</span><span>✳</span><span>✳</span></div>
+        <div class="service-copy">
+          <span class="eyebrow">CONSULTANCY SERVICES</span>
+          <h3>Have an agricultural question?</h3>
+          <p>Sign in to submit a request, describe your needs and keep track of its status.</p>
+          <button class="btn btn-primary" id="consultancyBtn" type="button">Request consultancy <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to action -->
+    <section class="cta-section">
+      <div class="cta-inner">
+        <div>
+          <span class="eyebrow">YOUR NEXT STEP STARTS HERE</span>
+          <h2>Let's grow something meaningful.</h2>
+          <p>Join ACBCS as a buyer, farmer or consultant.</p>
+        </div>
+        <button class="btn btn-gold btn-large" type="button" data-open-auth="register">Get started <span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
+    <!-- Dashboard (shown after login) -->
+    <section class="section dashboard-section hidden" id="dashboard" aria-labelledby="dashboardTitle">
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">YOUR WORKSPACE</span>
+          <h2 id="dashboardTitle">Welcome, <span id="dashboardName">User</span></h2>
+          <p>Manage your ACBCS activities from one place.</p>
+        </div>
+        <span class="role-badge" id="dashboardRole">BUYER</span>
+      </div>
+
+      <!-- data-roles lists who sees each tab; app.js toggles `hidden` -->
+      <div class="dashboard-tabs" id="dashboardTabs" role="tablist" aria-label="Dashboard sections">
+        <button class="dashboard-tab active" type="button" role="tab" id="tab-overview" data-tab="overview" data-roles="buyer farmer consultant" aria-selected="true" aria-controls="panel-overview">Overview</button>
+        <button class="dashboard-tab" type="button" role="tab" id="tab-bookings" data-tab="bookings" data-roles="buyer" aria-selected="false" aria-controls="panel-bookings">My bookings</button>
+        <button class="dashboard-tab" type="button" role="tab" id="tab-inventory" data-tab="inventory" data-roles="farmer" aria-selected="false" aria-controls="panel-inventory">My commodities</button>
+        <button class="dashboard-tab" type="button" role="tab" id="tab-farmerBookings" data-tab="farmerBookings" data-roles="farmer" aria-selected="false" aria-controls="panel-farmerBookings">Incoming bookings</button>
+        <button class="dashboard-tab" type="button" role="tab" id="tab-consultancy" data-tab="consultancy" data-roles="buyer consultant" aria-selected="false" aria-controls="panel-consultancy">Consultancy</button>
+      </div>
+
+      <div class="dashboard-panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+        <div class="dashboard-cards" id="dashboardCards"></div>
+        <div class="dashboard-welcome">
+          <div>
+            <h3>Your agricultural workspace</h3>
+            <p id="dashboardWelcomeText">Browse the marketplace and explore available services.</p>
+          </div>
+          <button class="btn btn-primary" id="dashboardPrimaryBtn" type="button">Explore marketplace <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+
+      <div class="dashboard-panel hidden" id="panel-bookings" role="tabpanel" aria-labelledby="tab-bookings">
+        <div class="panel-heading">
+          <div><h3>My bookings</h3><p>Track commodities you have booked.</p></div>
+          <button class="btn btn-outline" id="refreshBookingsBtn" type="button"><span aria-hidden="true">↻</span> Refresh</button>
+        </div>
+        <div id="buyerBookings" class="table-container"></div>
+      </div>
+
+      <div class="dashboard-panel hidden" id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory">
+        <div class="panel-heading">
+          <div><h3>My commodities</h3><p>Manage your agricultural listings.</p></div>
+          <button class="btn btn-primary" id="showCommodityFormBtn" type="button">+ Add commodity</button>
+        </div>
+
+        <form id="commodityForm" class="form-card hidden">
+          <h4>List a commodity</h4>
+          <div class="form-grid">
+            <label>Commodity name<input name="name" required maxlength="100" placeholder="e.g. Yellow maize"></label>
+            <label>Unit<input name="unit" required maxlength="30" placeholder="e.g. kg, bag, tonne"></label>
+            <label>Price per unit (₦)<input name="price" type="number" inputmode="decimal" min="0.01" step="0.01" required placeholder="e.g. 2500"></label>
+            <label>Available quantity<input name="quantity" type="number" inputmode="decimal" min="0.01" step="0.01" required placeholder="e.g. 100"></label>
+            <label class="full-width">Description<textarea name="description" rows="3" maxlength="1000" placeholder="Describe the produce, quality or harvest..."></textarea></label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Publish listing</button>
+            <button type="button" class="btn btn-outline" id="cancelCommodityFormBtn">Cancel</button>
+          </div>
+          <p class="form-feedback" id="commodityFormStatus" role="status"></p>
+        </form>
+
+        <div id="farmerInventory" class="table-container"></div>
+      </div>
+
+      <div class="dashboard-panel hidden" id="panel-farmerBookings" role="tabpanel" aria-labelledby="tab-farmerBookings">
+        <div class="panel-heading">
+          <div><h3>Incoming bookings</h3><p>Review booking requests for your commodities.</p></div>
+          <button class="btn btn-outline" id="refreshFarmerBookingsBtn" type="button"><span aria-hidden="true">↻</span> Refresh</button>
+        </div>
+        <div id="farmerBookings" class="table-container"></div>
+      </div>
+
+      <div class="dashboard-panel hidden" id="panel-consultancy" role="tabpanel" aria-labelledby="tab-consultancy">
+        <div class="panel-heading">
+          <div><h3>Consultancy requests</h3><p>Submit a request and review your previous submissions.</p></div>
+        </div>
+
+        <form id="consultancyForm" class="form-card">
+          <h4>New consultancy request</h4>
+          <label>Subject<input name="subject" maxlength="150" required placeholder="e.g. Maize disease management"></label>
+          <label>Description<textarea name="description" rows="4" maxlength="5000" required placeholder="Describe the agricultural issue or guidance you need..."></textarea></label>
+          <button type="submit" class="btn btn-primary">Submit request <span aria-hidden="true">↗</span></button>
+          <p class="form-feedback" id="consultancyFormStatus" role="status"></p>
+        </form>
+
+        <div class="panel-heading history-heading">
+          <div><h3>Request history</h3></div>
+          <button class="btn btn-outline" id="refreshConsultancyBtn" type="button"><span aria-hidden="true">↻</span> Refresh</button>
+        </div>
+        <div id="consultancyHistory" class="table-container"></div>
+      </div>
+
+      <div class="dashboard-panel hidden" id="panel-bookingForm" aria-label="Book a commodity">
+        <button class="text-button" id="backToOverviewBtn" type="button">← Back to overview</button>
+        <div id="bookingCommodityDetails"></div>
+
+        <form id="bookingForm" class="form-card">
+          <h3>Book this commodity</h3>
+          <p id="bookingStockInfo"></p>
+          <input type="hidden" name="commodityId">
+          <label>Quantity required<input name="quantity" type="number" inputmode="decimal" min="0.01" step="0.01" required></label>
+          <p id="bookingEstimate" class="booking-estimate"></p>
+          <button type="submit" class="btn btn-primary">Submit booking</button>
+          <p class="form-feedback" id="bookingFormStatus" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <a class="brand footer-brand" href="#home" aria-label="ACBCS home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span class="brand-copy"><strong>ACBCS</strong><small>AGRICULTURE CONNECTED</small></span>
+      </a>
+      <p>Connecting agricultural produce, people and knowledge.</p>
+      <a href="#marketplace">Explore marketplace <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="currentYear"></span> ACBCS</span>
+      <span>Agricultural Commodity Booking &amp; Consultancy System</span>
+    </div>
+  </footer>
+
+  <!-- Auth modal -->
+  <div class="modal hidden" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <button class="modal-close" id="closeAuthModal" type="button" aria-label="Close dialog">×</button>
+
+      <a class="brand modal-brand" href="#home" aria-label="ACBCS home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span class="brand-copy"><strong>ACBCS</strong><small>AGRICULTURE CONNECTED</small></span>
+      </a>
+
+      <span class="eyebrow" id="authEyebrow">WELCOME TO ACBCS</span>
+      <h2 id="authTitle">Welcome back.</h2>
+      <p id="authSubtitle">Sign in to continue to your account.</p>
+
+      <div class="auth-switch" role="tablist" aria-label="Account options">
+        <button type="button" role="tab" id="showLoginTab" class="active" aria-selected="true" aria-controls="loginForm">Log in</button>
+        <button type="button" role="tab" id="showRegisterTab" aria-selected="false" aria-controls="registerForm">Create account</button>
+      </div>
+
+      <form id="loginForm" role="tabpanel" aria-labelledby="showLoginTab">
+        <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
+        <button type="submit" class="btn btn-primary btn-full">Log in <span aria-hidden="true">↗</span></button>
+        <p class="form-feedback" id="loginStatus" role="status"></p>
+      </form>
+
+      <form id="registerForm" class="hidden" role="tabpanel" aria-labelledby="showRegisterTab">
+        <label>Full name<input name="fullName" autocomplete="name" required minlength="2" maxlength="100" placeholder="Your full name"></label>
+        <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+        <label>I want to join as
+          <select name="role" required>
+            <option value="buyer">Buyer</option>
+            <option value="farmer">Farmer</option>
+            <option value="consultant">Consultant</option>
+          </select>
+        </label>
+        <button type="submit" class="btn btn-primary btn-full">Create account <span aria-hidden="true">↗</span></button>
+        <p class="form-feedback" id="registerStatus" role="status"></p>
+      </form>
+
+      <p class="auth-footnote">Your account gives you access to the features available for your selected role.</p>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
