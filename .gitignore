@@ -1,12 +1,13 @@
 ﻿# Dependencies
 node_modules/
 
-# Environment secrets
+# Environment secrets (never commit real values)
 .env
 .env.*
 !.env.example
 
-# Local SQLite database and related files
+# Local SQLite database and related files (created at startup)
+data/
 data/*.db
 data/*.db-journal
 data/*.db-shm

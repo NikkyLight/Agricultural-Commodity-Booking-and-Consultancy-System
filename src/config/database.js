@@ -2,13 +2,13 @@ const Database = require("better-sqlite3");
 const fs = require("fs");
 const path = require("path");
 
+// Defaults to data/acbcs.db. ACBCS_DB_PATH lets tests use a throwaway file.
 const dataDirectory = path.join(__dirname, "../../data");
+const dbPath = process.env.ACBCS_DB_PATH || path.join(dataDirectory, "acbcs.db");
 
-if (!fs.existsSync(dataDirectory)) {
-  fs.mkdirSync(dataDirectory, { recursive: true });
-}
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-const db = new Database(path.join(dataDirectory, "acbcs.db"));
+const db = new Database(dbPath);
 
 db.pragma("foreign_keys = ON");
 
@@ -64,22 +64,20 @@ db.exec(`
   );
 `);
 
-// Add response fields to existing databases without deleting records.
-const existingColumns = () =>
-  db.prepare("PRAGMA table_info(consultancy_requests)").all()
-    .map((column) => column.name);
+// Add columns to existing databases without deleting records.
+const existingColumns = (table) =>
+  db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name);
 
 const migrations = [
-  ["response", "TEXT"],
-  ["responded_by", "INTEGER"],
-  ["responded_at", "TEXT"],
+  ["consultancy_requests", "response", "TEXT"],
+  ["consultancy_requests", "responded_by", "INTEGER"],
+  ["consultancy_requests", "responded_at", "TEXT"],
+  ["consultancy_requests", "assigned_to", "INTEGER"],
 ];
 
-for (const [column, type] of migrations) {
-  if (!existingColumns().includes(column)) {
-    db.exec(
-      `ALTER TABLE consultancy_requests ADD COLUMN ${column} ${type}`
-    );
+for (const [table, column, type] of migrations) {
+  if (!existingColumns(table).includes(column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
   }
 }
 

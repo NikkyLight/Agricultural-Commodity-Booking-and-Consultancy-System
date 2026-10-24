@@ -1,23 +1,10 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const db = require("../config/database");
+const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
 
 const fail = (res, code, message) => res.status(code).json({ message });
-
-function authenticateToken(req, res, next) {
-  const header = req.headers.authorization;
-  const token = header?.startsWith("Bearer ") ? header.split(" ")[1] : null;
-  if (!token) return fail(res, 401, "Authentication required.");
-
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    fail(res, 401, "Invalid or expired token.");
-  }
-}
 
 const requireRole = (role, message) => (req, res, next) =>
   req.user.role === role ? next() : fail(res, 403, message);
@@ -40,13 +27,18 @@ const respond = (res, result, okStatus, message, key) =>
 
 const isId = (n) => Number.isSafeInteger(n) && n > 0;
 
-// POST /api/bookings — buyers book a commodity
+const BOOKING_SELECT =
+  "SELECT id, buyer_id, commodity_id, quantity, status, created_at FROM bookings WHERE id = ?";
+
+// POST /api/bookings - buyers book a commodity
+// Stock is reserved in the same transaction as the booking insert, so a
+// failed insert cannot leave stock reserved and a sold-out item cannot be booked.
 router.post(
   "/",
   authenticateToken,
   requireRole("buyer", "Only buyers can create bookings."),
   guarded("Create booking error", "Could not create booking.", (req, res) => {
-    const { commodityId, quantity } = req.body;
+    const { commodityId, quantity } = req.body || {};
 
     if (!isId(commodityId) || !Number.isFinite(quantity) || quantity <= 0) {
       return fail(res, 400, "Provide a valid commodityId and positive quantity.");
@@ -66,7 +58,9 @@ router.post(
 
       // Reserve stock only if enough remains.
       const stock = db
-        .prepare("UPDATE commodities SET quantity = quantity - ? WHERE id = ? AND quantity >= ?")
+        .prepare(
+          "UPDATE commodities SET quantity = quantity - ? WHERE id = ? AND quantity >= ?"
+        )
         .run(quantity, commodityId, quantity);
 
       if (stock.changes !== 1) {
@@ -74,7 +68,9 @@ router.post(
       }
 
       const { lastInsertRowid } = db
-        .prepare("INSERT INTO bookings (buyer_id, commodity_id, quantity, status) VALUES (?, ?, ?, 'pending')")
+        .prepare(
+          "INSERT INTO bookings (buyer_id, commodity_id, quantity, status) VALUES (?, ?, ?, 'pending')"
+        )
         .run(buyerId, commodityId, quantity);
 
       return {
@@ -93,7 +89,7 @@ router.post(
   })
 );
 
-// GET /api/bookings/my — buyer's own bookings
+// GET /api/bookings/my - buyer's own bookings
 router.get(
   "/my",
   authenticateToken,
@@ -115,7 +111,7 @@ router.get(
   })
 );
 
-// GET /api/bookings/farmer — bookings on the farmer's commodities
+// GET /api/bookings/farmer - bookings on the farmer's commodities
 router.get(
   "/farmer",
   authenticateToken,
@@ -142,14 +138,14 @@ const TRANSITIONS = {
   confirmed: ["completed"],
 };
 
-// PATCH /api/bookings/:id/status — farmers manage their bookings
+// PATCH /api/bookings/:id/status - farmers manage their bookings
 router.patch(
   "/:id/status",
   authenticateToken,
   requireRole("farmer", "Only farmers can manage booking status."),
   guarded("Update booking error", "Could not update booking status.", (req, res) => {
     const bookingId = Number(req.params.id);
-    const { status } = req.body;
+    const { status } = req.body || {};
 
     if (!isId(bookingId) || !["confirmed", "rejected", "completed"].includes(status)) {
       return fail(res, 400, "Provide a valid booking ID and status.");
@@ -169,25 +165,68 @@ router.patch(
         return { error: "You cannot manage another farmer's booking.", status: 403 };
       }
       if (!TRANSITIONS[booking.status]?.includes(status)) {
-        return { error: `Cannot change booking from ${booking.status} to ${status}.`, status: 409 };
+        return {
+          error: `Cannot change booking from ${booking.status} to ${status}.`,
+          status: 409,
+        };
       }
 
       // Rejected bookings return their stock.
       if (status === "rejected") {
-        db.prepare("UPDATE commodities SET quantity = quantity + ? WHERE id = ?")
-          .run(booking.quantity, booking.commodity_id);
+        db.prepare("UPDATE commodities SET quantity = quantity + ? WHERE id = ?").run(
+          booking.quantity,
+          booking.commodity_id
+        );
       }
 
       db.prepare("UPDATE bookings SET status = ? WHERE id = ?").run(status, bookingId);
 
-      return {
-        booking: db
-          .prepare("SELECT id, buyer_id, commodity_id, quantity, status, created_at FROM bookings WHERE id = ?")
-          .get(bookingId),
-      };
+      return { booking: db.prepare(BOOKING_SELECT).get(bookingId) };
     })();
 
     respond(res, result, 200, "Booking status updated successfully.", "booking");
+  })
+);
+
+// PATCH /api/bookings/:id/cancel - buyer cancels their own booking.
+// Allowed while pending or confirmed. Reserved stock is returned.
+router.patch(
+  "/:id/cancel",
+  authenticateToken,
+  requireRole("buyer", "Only buyers can cancel bookings."),
+  guarded("Cancel booking error", "Could not cancel booking.", (req, res) => {
+    const bookingId = Number(req.params.id);
+
+    if (!isId(bookingId)) {
+      return fail(res, 400, "Provide a valid booking ID.");
+    }
+
+    const result = db.transaction(() => {
+      const booking = db
+        .prepare("SELECT id, buyer_id, commodity_id, quantity, status FROM bookings WHERE id = ?")
+        .get(bookingId);
+
+      if (!booking) return { error: "Booking not found.", status: 404 };
+      if (booking.buyer_id !== Number(req.user.sub)) {
+        return { error: "You cannot cancel another buyer's booking.", status: 403 };
+      }
+      if (!["pending", "confirmed"].includes(booking.status)) {
+        return {
+          error: `Cannot cancel a booking that is ${booking.status}.`,
+          status: 409,
+        };
+      }
+
+      db.prepare("UPDATE commodities SET quantity = quantity + ? WHERE id = ?").run(
+        booking.quantity,
+        booking.commodity_id
+      );
+      db.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?").run(bookingId);
+
+      return { booking: db.prepare(BOOKING_SELECT).get(bookingId) };
+    })();
+
+    respond(res, result, 200, "Booking cancelled successfully.", "booking");
   })
 );
 

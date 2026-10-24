@@ -25,7 +25,7 @@ const smoothScroll = (el, block) => el?.scrollIntoView({ behavior: "smooth", blo
 const date = (v) => {
   const d = new Date(String(v ?? "").replace(" ", "T"));
   return isNaN(d)
-    ? "—"
+    ? "-"
     : d.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
 };
 
@@ -393,7 +393,7 @@ async function renderOverview() {
       count = Number(data.count ?? data[key]?.length) || 0;
     } catch (e) {
       report(e);
-      count = "—";
+      count = "-";
     }
   }
   if (!state.user) return;
@@ -435,7 +435,7 @@ const loadBuyerBookings = () =>
     path: "/bookings/my",
     key: "bookings",
     loading: "Loading bookings...",
-    headers: ["Commodity", "Farmer", "Quantity", "Unit price", "Status", "Date"],
+    headers: ["Commodity", "Farmer", "Quantity", "Unit price", "Status", "Date", "Action"],
     row: (b) => `<tr>
       <td><strong>${esc(b.commodity_name)}</strong></td>
       <td>${esc(b.farmer_name)}</td>
@@ -443,6 +443,9 @@ const loadBuyerBookings = () =>
       <td>${money(b.price)}</td>
       <td>${badge(b.status)}</td>
       <td>${date(b.created_at)}</td>
+      <td>${["pending", "confirmed"].includes(b.status)
+        ? `<button class="btn btn-outline" type="button" data-cancel-booking="${Number(b.id)}">Cancel</button>`
+        : "-"}</td>
     </tr>`,
   });
 
@@ -467,7 +470,7 @@ const loadFarmerBookings = () =>
       <td>${(NEXT_STATUS[b.status] || [])
         .map(([v, t, cls]) =>
           `<button class="btn ${cls}" type="button" data-status="${Number(b.id)}" data-value="${v}">${t}</button>`)
-        .join("") || "—"}</td>
+        .join("") || "-"}</td>
     </tr>`,
   });
 
@@ -498,6 +501,18 @@ function consultancyRow(staff) {
         </form>`
       : "";
 
+    // Assign is for staff on pending requests. Cancel is only offered on a
+    // request the current user submitted (the API rejects cancelling anyone else's).
+    const open = ["pending", "assigned"].includes(r.status);
+    const own = !staff || Number(r.user_id) === Number(state.user?.id);
+    const actions = [];
+    if (staff && r.status === "pending") {
+      actions.push(`<button class="btn btn-primary" type="button" data-assign-request="${Number(r.id)}">Assign to me</button>`);
+    }
+    if (open && own) {
+      actions.push(`<button class="btn btn-outline" type="button" data-cancel-request="${Number(r.id)}">Cancel</button>`);
+    }
+
     return `<tr>
       ${staff ? `<td>${requester}</td>` : ""}
       <td><strong>${esc(r.subject)}</strong></td>
@@ -505,13 +520,14 @@ function consultancyRow(staff) {
       <td>${response}${reply}</td>
       <td>${badge(r.status)}</td>
       <td>${date(r.created_at)}</td>
+      <td>${actions.join(" ") || "-"}</td>
     </tr>`;
   };
 }
 
 function loadConsultancyHistory() {
   const staff = ["consultant", "admin"].includes(role());
-  const base = ["Subject", "Question", "Consultant response", "Status", "Date"];
+  const base = ["Subject", "Question", "Consultant response", "Status", "Date", "Action"];
 
   return loadTable({
     target: "#consultancyHistory",
@@ -577,6 +593,50 @@ async function updateBookingStatus(id, status, button) {
     toast("Booking status updated.", "success");
     await Promise.all([loadFarmerBookings(), loadCommodities()]);
     renderOverview();
+  } catch (e) {
+    report(e);
+    button.disabled = false;
+  }
+}
+
+async function cancelBooking(id, button) {
+  if (!confirm("Cancel this booking? Reserved stock will be returned to the farmer.")) return;
+  button.disabled = true;
+
+  try {
+    const data = await post(`/bookings/${encodeURIComponent(id)}/cancel`, undefined, "PATCH");
+    toast(data.message || "Booking cancelled successfully.", "success");
+    await Promise.all([loadBuyerBookings(), loadCommodities()]);
+    renderOverview();
+  } catch (e) {
+    report(e);
+    button.disabled = false;
+  }
+}
+
+async function assignConsultancyRequest(id, button) {
+  button.disabled = true;
+
+  try {
+    const data = await post(`/consultancy/${encodeURIComponent(id)}/assign`, undefined);
+    toast(data.message || "Consultancy request assigned successfully.", "success");
+    await loadConsultancyHistory();
+    await renderOverview();
+  } catch (e) {
+    report(e);
+    button.disabled = false;
+  }
+}
+
+async function cancelConsultancyRequest(id, button) {
+  if (!confirm("Cancel this consultancy request?")) return;
+  button.disabled = true;
+
+  try {
+    const data = await post(`/consultancy/${encodeURIComponent(id)}/cancel`, undefined, "PATCH");
+    toast(data.message || "Consultancy request cancelled successfully.", "success");
+    await loadConsultancyHistory();
+    await renderOverview();
   } catch (e) {
     report(e);
     button.disabled = false;
@@ -766,6 +826,15 @@ function wire() {
 
     const status = target.closest("[data-status]");
     if (status) updateBookingStatus(status.dataset.status, status.dataset.value, status);
+
+    const cancelBtn = target.closest("[data-cancel-booking]");
+    if (cancelBtn) cancelBooking(cancelBtn.dataset.cancelBooking, cancelBtn);
+
+    const assignBtn = target.closest("[data-assign-request]");
+    if (assignBtn) assignConsultancyRequest(assignBtn.dataset.assignRequest, assignBtn);
+
+    const cancelReqBtn = target.closest("[data-cancel-request]");
+    if (cancelReqBtn) cancelConsultancyRequest(cancelReqBtn.dataset.cancelRequest, cancelReqBtn);
   });
 
   document.addEventListener("keydown", (e) => e.key === "Escape" && closeAuth());

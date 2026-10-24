@@ -1,6 +1,6 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const db = require("../config/database");
+const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -8,20 +8,7 @@ const fail = (res, code, message) => res.status(code).json({ message });
 const isText = (v) => typeof v === "string" && v.trim() !== "";
 const isPositive = (n) => Number.isFinite(n) && n > 0;
 
-function authenticateToken(req, res, next) {
-  const header = req.headers.authorization;
-  const token = header?.startsWith("Bearer ") ? header.split(" ")[1] : null;
-  if (!token) return fail(res, 401, "Authentication required. Please log in.");
-
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    fail(res, 401, "Invalid or expired token.");
-  }
-}
-
-// GET /api/commodities — public listing
+// GET /api/commodities - public listing
 router.get("/", (req, res) => {
   try {
     const commodities = db
@@ -41,16 +28,19 @@ router.get("/", (req, res) => {
   }
 });
 
-// POST /api/commodities — farmers list a commodity
+// POST /api/commodities - farmers list a commodity
 router.post("/", authenticateToken, (req, res) => {
   if (req.user.role !== "farmer") return fail(res, 403, "Only farmers can list commodities.");
 
-  const { name, description = "", price, unit, quantity } = req.body;
+  const { name, description = "", price, unit, quantity } = req.body || {};
 
   if (!isText(name) || !isText(unit) || !isPositive(price) || !isPositive(quantity)) {
     return fail(res, 400, "Provide a name, unit, positive price, and positive quantity.");
   }
   if (typeof description !== "string") return fail(res, 400, "Description must be text.");
+  if (name.trim().length > 150 || unit.trim().length > 30 || description.length > 2000) {
+    return fail(res, 400, "Name must be at most 150 characters, unit 30, and description 2000.");
+  }
 
   try {
     const { lastInsertRowid } = db
