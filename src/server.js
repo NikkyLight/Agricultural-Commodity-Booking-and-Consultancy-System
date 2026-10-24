@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const path = require("path");
 
 const db = require("./config/database");
@@ -26,6 +27,11 @@ app.disable("x-powered-by");
 
 // ---------- Middleware ----------
 
+// Security headers (CSP, HSTS, nosniff, frame-ancestors, etc.). Helmet's default
+// CSP is kept: scripts are same-origin only (public/index.html loads app.js with
+// no inline <script>), styles allow 'unsafe-inline' because app.js renders
+// inline style="" attributes in its tables.
+app.use(helmet());
 app.use(
   cors({
     origin: allowedOrigins.length ? allowedOrigins : false,

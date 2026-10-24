@@ -89,6 +89,12 @@ better-sqlite3 13.0.3 requires Node 22 or newer (its package.json says node >=22
 
 20. [done] Error handling: the global error handler in server.js already covers invalid JSON (400) and oversized bodies (413). Route-level guarded() wrappers kept.
 
+21. [done] Security headers: helmet 8.3.0 added (package.json, package-lock.json) and wired in src/server.js as app.use(helmet()) before cors and the routes.
+   What it sends: Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff, X-Frame-Options: SAMEORIGIN, Referrer-Policy: no-referrer, Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy: same-origin, and others.
+   CSP choice: helmet's default policy kept, no custom directives. Scripts are limited to same-origin (script-src 'self'); public/index.html loads app.js from the same server with no inline script, and app.js has no inline event handlers (onclick and similar: 0 matches). Styles keep helmet's default 'unsafe-inline' because app.js builds tables with inline style="" attributes. The CSP was not blocking anything in the checks below.
+   Why: one-line standard hardening; it does not change any API behaviour.
+   Verified: npm test 5 of 5 pass; npm run lint clean; live server on Node 22 returns the headers on / and app.js still serves with 200; /api/health returns OK; login with an empty body still returns 400. Not checked in a real browser (no browser was used), so a page-level CSP violation would only show in the browser console.
+
 ## Verification run
 
 - npm ci and npm install on Node 22: OK.
