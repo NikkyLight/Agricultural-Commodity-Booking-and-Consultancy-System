@@ -1,6 +1,6 @@
 # Agricultural Commodity Booking and Consultancy System (Case Study: Faculty of Agriculture, University of Ibadan)
 
-ACBCS is a web-based system for booking agricultural commodities and requesting agricultural consultancy. Farmers list commodities with a price, unit and stock quantity. Buyers browse the listings and book a quantity, which is reserved from stock at the time of booking. Farmers confirm, reject or complete bookings on their own listings, and buyers can cancel their own bookings. Registered users can also submit consultancy requests, which consultants pick up from a queue (assign), answer (respond) and resolve. The frontend is plain HTML, CSS and JavaScript served by the same Express server, with responsive layout for phone-sized screens. It is not yet a native mobile app.
+ACBCS is a web-based system for booking agricultural commodities and requesting agricultural consultancy. Farmers list commodities with a price, unit and stock quantity. Buyers browse the listings and book a quantity, which is reserved from stock at the time of booking. Farmers confirm, reject or complete bookings on their own listings, and buyers can cancel their own bookings. Registered users can also submit consultancy requests, which consultants pick up from a queue (assign), answer (respond) and resolve. The frontend is plain HTML, CSS and JavaScript served by the same Express server, with responsive layout for phone-sized screens. It is not yet a native mobile app or an installable PWA (see Roadmap).
 
 ## Features
 

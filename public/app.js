@@ -211,6 +211,7 @@ const PRODUCE = [
   [["onion"], "🧅", "onions.jpg"],
   [["plantain"], "🍌", "plantain.jpg"],
   [["fish"], "🐟", "fish.jpg"],
+  [["pineapple"], "🍍", "pineapple.jpg"],
 ];
 
 const placeholder = (icon, label) =>
