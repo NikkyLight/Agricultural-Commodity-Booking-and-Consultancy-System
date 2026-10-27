@@ -210,8 +210,10 @@ const PRODUCE = [
   [["egg"], "🥚", "eggs.jpg"],
   [["onion"], "🧅", "onions.jpg"],
   [["plantain"], "🍌", "plantain.jpg"],
-  [["fish"], "🐟", "fish.jpg"],
   [["pineapple"], "🍍", "pineapple.jpg"],
+  [["avocado"], "🥑", "avocado.jpg"],
+  [["orange"], "🍊", "orange.jpg"],
+  [["fish"], "🐟", "fish.jpg"],
 ];
 
 const placeholder = (icon, label) =>
