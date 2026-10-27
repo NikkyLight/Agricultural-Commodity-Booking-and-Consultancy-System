@@ -10,11 +10,8 @@ const DEMO = [
   ["Cassava tubers", "Freshly harvested cassava tubers from Oyo farms.", 450, "per tuber", 500],
   ["Garri (white)", "Fine white garri, well processed and dried.", 1200, "per paint bucket", 200],
   ["Yellow maize", "Dried yellow maize, properly sorted.", 38000, "per bag (100kg)", 40],
-  ["Ofada rice", "Locally processed ofada rice, stone-free.", 42000, "per bag (50kg)", 25],
-  ["Yam tubers", "Fresh yam tubers, big and firm.", 2500, "per tuber", 300],
   ["Plantain bunch", "Ripe and unripe plantain bunches available.", 4500, "per bunch", 120],
   ["Pineapple", "Sweet juicy pineapples from Epe farms.", 900, "each", 250],
-  ["Mango", "Fresh tree-ripened mangoes.", 350, "each", 400],
   ["Orange", "Sweet oranges, bulk supply available.", 200, "each", 800],
   ["Avocado pear", "Fresh avocado pears.", 500, "each", 150],
   ["Tomatoes", "Fresh tomatoes, no chemicals.", 15000, "per basket", 30],
@@ -22,15 +19,17 @@ const DEMO = [
   ["Onions", "Fresh red onions from the north.", 28000, "per bag", 20],
   ["Palm oil", "Pure unadulterated red palm oil.", 9500, "per 5L keg", 60],
   ["Groundnut", "Dried groundnut, well cleaned.", 45000, "per bag (100kg)", 15],
-  ["Soybeans", "Dried soybeans, premium grade.", 48000, "per bag (100kg)", 18],
-  ["Cocoa beans", "Fermented and dried cocoa beans.", 65000, "per bag (65kg)", 12],
   ["Wheat", "Dried wheat grains.", 40000, "per bag (100kg)", 10],
   ["Live chicken (broiler)", "Healthy broiler chickens, 2kg+.", 6500, "each", 100],
   ["Live turkey", "Big healthy turkeys for the season.", 18000, "each", 40],
   ["Eggs (crate)", "Fresh table eggs, straight from the farm.", 4800, "per crate", 200],
-  ["Catfish", "Fresh live catfish, various sizes.", 2200, "per kg", 150],
-  ["Live goat", "Healthy adult goats, on-ground delivery.", 35000, "each", 20],
 ];
+
+
+// Removes produce the team pulled from the marketplace (runs every boot).
+const REMOVED = ["Ofada rice", "Yam tubers", "Mango", "Soybeans", "Cocoa beans", "Catfish", "Live goat"];
+const del = db.prepare("DELETE FROM commodities WHERE name = ?");
+for (const name of REMOVED) del.run(name);
 
 const existing = db.prepare("SELECT COUNT(*) AS n FROM commodities").get();
 if (existing.n > 0) {
