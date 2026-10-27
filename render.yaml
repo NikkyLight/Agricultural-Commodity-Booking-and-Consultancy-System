@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: acbcs
+    runtime: node
+    plan: free
+    buildCommand: npm install && node scripts/create-admin.js
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
