@@ -3,7 +3,7 @@ services:
     name: acbcs
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && node scripts/seed-demo.js
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
